@@ -8,4 +8,5 @@ Yamp is a simple PyGTK based music player. It relies on GStreamer for the audio 
 TODO
 
 Playlist support
+
 Handle song tags
