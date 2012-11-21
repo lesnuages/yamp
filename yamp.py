@@ -2,9 +2,7 @@
 
 import sys, os
 import pygtk, gtk, gobject
-import pygst
-pygst.require('0.10')
-import gst
+from player import MusicPlayer
 
 class GTK_Main:
 
@@ -25,7 +23,7 @@ class GTK_Main:
         self.filem.set_submenu(self.filemenu)
         
         self.menuOpen = gtk.MenuItem("Open")
-        self.menuOpen.connect("activate", self.openFileDialog)
+        self.menuOpen.connect("activate", self.open_file_dialog)
         self.menuExit = gtk.MenuItem("Exit")
         self.menuExit.connect("activate", gtk.main_quit)
 
@@ -37,14 +35,16 @@ class GTK_Main:
         vbox = gtk.VBox(False, 2)
         window.add(vbox)
         vbox.pack_start(self.mb, False, False, 0)
+
         self.imgStop = gtk.Image()
-        self.imgStart = gtk.Image()
+        self.imgPlay = gtk.Image()
         self.imgNext = gtk.Image()
         self.imgPrev = gtk.Image()
         self.imgPause = gtk.Image()
+
         self.imgStop.set_from_stock(gtk.STOCK_MEDIA_STOP, gtk.ICON_SIZE_BUTTON)
         self.imgPause.set_from_stock(gtk.STOCK_MEDIA_PAUSE, gtk.ICON_SIZE_BUTTON)
-        self.imgStart.set_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON)
+        self.imgPlay.set_from_stock(gtk.STOCK_MEDIA_PLAY, gtk.ICON_SIZE_BUTTON)
         self.imgPrev.set_from_stock(gtk.STOCK_MEDIA_PREVIOUS, gtk.ICON_SIZE_BUTTON)
         self.imgNext.set_from_stock(gtk.STOCK_MEDIA_NEXT, gtk.ICON_SIZE_BUTTON)
 
@@ -63,14 +63,14 @@ class GTK_Main:
         self.buttonNext.set_relief(gtk.RELIEF_NONE)
 
         self.buttonStop.add(self.imgStop)
-        self.buttonPlay.add(self.imgStart)
+        self.buttonPlay.add(self.imgPlay)
         self.buttonPrev.add(self.imgPrev)
         self.buttonNext.add(self.imgNext)
 
-        self.buttonPlay.connect("clicked", self.playAction)
-        self.buttonNext.connect("clicked", self.nextAction)
-        self.buttonPrev.connect("clicked", self.prevAction)
-        self.buttonStop.connect("clicked", self.stopAction)
+        self.buttonPlay.connect("clicked", self.play_action)
+        self.buttonNext.connect("clicked", self.next_action)
+        self.buttonPrev.connect("clicked", self.prev_action)
+        self.buttonStop.connect("clicked", self.stop_action)
 
         self.imgCover = gtk.Image()
         pixbuf = gtk.gdk.pixbuf_new_from_file("cd_case.png")
@@ -91,59 +91,49 @@ class GTK_Main:
         
         hbox = gtk.HBox(False,10)
         hbox.pack_start(self.imgCover, False, False, 0)
-        hbox.pack_start(vboxInfos, False, False, 0)
+        hbox.pack_start(vboxInfos, False, False, 8)
 
-        vbox.pack_start(hbox, False, False, 0)
+        vbox.pack_start(hbox, False, False, 5)
         window.show_all()
 
-        self.player = gst.element_factory_make("playbin2", "player")
-        fakesink = gst.element_factory_make("fakesink", "fakesink")
-        self.player.set_property("video-sink",fakesink)
-        bus = self.player.get_bus()
-        bus.add_signal_watch()
-        bus.connect("message", self.on_message)
+        self.player = MusicPlayer()
+        self.player.add_observer(self)
 
-    def playAction(self, w):
+    def update(self,message=None):
+        if message == "reset":
+            self.buttonPlay.set_image(self.imgPlay)
+            self.isPlaying = False
+        elif message == "pause":
+            self.buttonPlay.set_image(self.imgPlay)
+            self.isPlaying = False
+        elif message == "play":
+            self.buttonPlay.set_image(self.imgPause)
+            self.isPlaying = True
+        else:
+            print("Error : unknow message {}".format(message))
+
+    def play_action(self, w):
         if w == self.buttonPlay:
             if self.isPlaying:
-                self.player.set_state(gst.STATE_PAUSED)
-                w.set_image(self.imgStart)
-                self.isPlaying = False
+                self.player.pause()
             else:
-                """ Handle the first click on the Play Button """
-                if not self.isPlaying: 
-                    if os.path.isfile(self.filePath):
-                        self.player.set_property("uri", "file://" + self.filePath)
-                    w.set_image(self.imgPause)
-                else:
-                    w.set_image(self.imgStart)
-                self.player.set_state(gst.STATE_PLAYING)
-                self.isPlaying = True
+                if not self.isPlaying and os.path.isfile(self.filePath):
+                    self.player.open_file(self.filePath)
+                self.player.play()
 
-    def nextAction(self, w):
-        print ("NEXT !")
+    def next_action(self, w):
+        if w == self.buttonNext:
+            self.player.play_next()
 
-    def prevAction(self, w):
-        print("PREVIOUS !")
+    def prev_action(self, w):
+        if w == self.buttonPrev:
+            self.player.play_prev()
 
-    def stopAction(self, w):
+    def stop_action(self, w):
         if w == self.buttonStop:
-            self.player.set_state(gst.STATE_NULL)
-            self.buttonPlay.set_image(self.imgStart)
-            self.isPlaying = False
+            self.player.stop()
 
-    def on_message(self, bus, message):
-        t = message.type;
-        if t == gst.MESSAGE_EOS:
-            self.player.set_state(gst.STATE_NULL)
-            self.buttonPlay.set_image(self.imgStart)
-        elif t == gst.MESSAGE_ERROR:
-            self.player.set_state(gst.STATE_NULL)
-            err, debug = message.parse_error()
-            print ("Error {} {}".format(err, debug))
-            self.buttonPlay.set_image(self.imgStart)
-    
-    def openFileDialog(self, w):
+    def open_file_dialog(self, w):
         chooser = gtk.FileChooserDialog("Open",
                                         action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
