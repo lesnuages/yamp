@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+#! /usr/bin/env python
 
 import pygtk, gtk, gobject
 from player import MusicPlayer
@@ -48,6 +48,10 @@ class GTK_Main:
         self.lblAlbum = gtk.Label()
         self.lblSongTitle = gtk.Label()
 
+        self.lblArtist.set_use_markup(True)
+        self.lblAlbum.set_use_markup(True)
+        self.lblSongTitle.set_use_markup(True)
+
         self.buttonPlay = gtk.Button()
         self.buttonNext = gtk.Button()
         self.buttonPrev = gtk.Button()
@@ -69,7 +73,7 @@ class GTK_Main:
         self.buttonStop.connect("clicked", self.stop_action)
 
         self.imgCover = gtk.Image()
-        pixbuf = gtk.gdk.pixbuf_new_from_file("cd_case.png")
+        pixbuf = gtk.gdk.pixbuf_new_from_file("music_cd.png")
         scaled_buf = pixbuf.scale_simple(84,84,gtk.gdk.INTERP_BILINEAR)
         self.imgCover.set_from_pixbuf(scaled_buf)
 
@@ -79,15 +83,19 @@ class GTK_Main:
         hboxButtons.pack_start(self.buttonStop, False, False, 0)
         hboxButtons.pack_start(self.buttonNext, False, False, 0)
 
-        vboxInfos = gtk.VBox(False, 2)
-        vboxInfos.pack_start(hboxButtons, True, False, 0)
-        vboxInfos.pack_start(self.lblSongTitle, True, False, 0)
-        vboxInfos.pack_start(self.lblArtist, True, False, 0)
-        vboxInfos.pack_start(self.lblAlbum, True, False, 0)
+
+        vboxInfos = gtk.VBox(False, 0)
+        self.lblSongTitle.set_alignment(0,0.5)
+        self.lblArtist.set_alignment(0,0.5)
+        self.lblAlbum.set_alignment(0,0.5)
+        vboxInfos.pack_start(hboxButtons, True, True, 0)
+        vboxInfos.pack_start(self.lblSongTitle, True, True, 0)
+        vboxInfos.pack_start(self.lblArtist, True, True, 0)
+        vboxInfos.pack_start(self.lblAlbum, True, True, 0)
         
         hbox = gtk.HBox(False,10)
         hbox.pack_start(self.imgCover, False, False, 0)
-        hbox.pack_start(vboxInfos, False, False, 8)
+        hbox.pack_start(vboxInfos, False, False, 0)
 
         vbox.pack_start(hbox, False, False, 5)
         window.show_all()
@@ -102,9 +110,9 @@ class GTK_Main:
             self.buttonPlay.set_image(self.imgPlay)
         elif message == "play":
             if infos is not None:
-                self.lblArtist.set_text(infos["artist"])
-                self.lblAlbum.set_text(infos["album"])
-                self.lblSongTitle.set_text("{} - {}".format(infos["track_number"],infos["title"]))
+                self.lblArtist.set_markup("<b>"+infos["artist"]+"</b>")
+                self.lblAlbum.set_markup("<b>"+infos["album"]+"</b>")
+                self.lblSongTitle.set_markup("<b>#{} - {}</b>".format(infos["track_number"],infos["title"]))
             self.buttonPlay.set_image(self.imgPause)
         else:
             print("Error : unknow message {}".format(message))
