@@ -1,6 +1,5 @@
 #! /usr/bin/python2
 
-import sys, os
 import pygtk, gtk, gobject
 from player import MusicPlayer
 
@@ -12,9 +11,6 @@ class GTK_Main:
         window.set_default_size(300, -1)
         window.connect("destroy", gtk.main_quit, "WM destroy")
         window.set_position(gtk.WIN_POS_CENTER)
-
-        self.filePath = ""
-        self.isPlaying = False
 
         self.mb = gtk.MenuBar()
         self.filemenu = gtk.Menu()
@@ -48,9 +44,9 @@ class GTK_Main:
         self.imgPrev.set_from_stock(gtk.STOCK_MEDIA_PREVIOUS, gtk.ICON_SIZE_BUTTON)
         self.imgNext.set_from_stock(gtk.STOCK_MEDIA_NEXT, gtk.ICON_SIZE_BUTTON)
 
-        self.lblArtist = gtk.Label("Artist")
-        self.lblAlbum = gtk.Label("Album")
-        self.lblSongTitle = gtk.Label("Song Title")
+        self.lblArtist = gtk.Label()
+        self.lblAlbum = gtk.Label()
+        self.lblSongTitle = gtk.Label()
 
         self.buttonPlay = gtk.Button()
         self.buttonNext = gtk.Button()
@@ -85,9 +81,9 @@ class GTK_Main:
 
         vboxInfos = gtk.VBox(False, 2)
         vboxInfos.pack_start(hboxButtons, True, False, 0)
+        vboxInfos.pack_start(self.lblSongTitle, True, False, 0)
         vboxInfos.pack_start(self.lblArtist, True, False, 0)
         vboxInfos.pack_start(self.lblAlbum, True, False, 0)
-        vboxInfos.pack_start(self.lblSongTitle, True, False, 0)
         
         hbox = gtk.HBox(False,10)
         hbox.pack_start(self.imgCover, False, False, 0)
@@ -99,26 +95,25 @@ class GTK_Main:
         self.player = MusicPlayer()
         self.player.add_observer(self)
 
-    def update(self,message=None):
+    def update(self,message=None, infos=None):
         if message == "reset":
             self.buttonPlay.set_image(self.imgPlay)
-            self.isPlaying = False
         elif message == "pause":
             self.buttonPlay.set_image(self.imgPlay)
-            self.isPlaying = False
         elif message == "play":
+            if infos is not None:
+                self.lblArtist.set_text(infos["artist"])
+                self.lblAlbum.set_text(infos["album"])
+                self.lblSongTitle.set_text("{} - {}".format(infos["track_number"],infos["title"]))
             self.buttonPlay.set_image(self.imgPause)
-            self.isPlaying = True
         else:
             print("Error : unknow message {}".format(message))
 
     def play_action(self, w):
         if w == self.buttonPlay:
-            if self.isPlaying:
+            if self.player.is_playing():
                 self.player.pause()
             else:
-                if not self.isPlaying and os.path.isfile(self.filePath):
-                    self.player.open_file(self.filePath)
                 self.player.play()
 
     def next_action(self, w):
@@ -137,15 +132,12 @@ class GTK_Main:
         chooser = gtk.FileChooserDialog("Open",
                                         action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
+        
         chooser.set_select_multiple(True)
-
         response = chooser.run()
         if response == gtk.RESPONSE_OK:
             filenames = chooser.get_filenames()
-            if len(filenames) == 1 :
-                self.filePath = chooser.get_filename()
-            elif len(filenames) > 1:
-                playlist = filenames
+            self.player.set_playlist(filenames)
 
         chooser.destroy()
 
