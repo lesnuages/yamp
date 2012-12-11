@@ -3,7 +3,7 @@ import pygst
 pygst.require('0.10')
 import gst
 from hsaudiotag import auto
-from playlist import Playlist
+from playlist import Playlist, Song
 
 class MusicPlayer:
 
@@ -18,6 +18,7 @@ class MusicPlayer:
         self.playing = False
         self.playlist = Playlist("New playlist")
         self.currentFile = None
+        self.currentSong = None
 
 
     def is_playing(self):
@@ -29,9 +30,9 @@ class MusicPlayer:
     def add_observer(self, observer):
         self.observers.append(observer)
 
-    def notify_observers(self, message, infos=None):
+    def notify_observers(self, message, song=None):
         for obs in self.observers:
-            obs.update(message, infos)
+            obs.update(message, song)
 
     def on_message(self, bus, message):
         t = message.type
@@ -47,22 +48,39 @@ class MusicPlayer:
 
     def set_playlist(self,pl):
         if len(pl) > 0:
-            self.playlist = Playlist("New Playlist", pl)
-            self.currentFile = self.playlist.get_current()
+            tmplist = list()
+            for filepath in pl:
+                infos = self.get_file_infos(filepath)
+                tmplist.append(Song(infos["title"],infos["artist"],infos["album"],infos["track_number"],filepath))
+            self.playlist = Playlist("New Playlist", tmplist)
+            self.currentSong = self.playlist.get_current()
+            self.currentFile = self.currentSong.get_path()
+            self.notify_observers("update_playlist")
 
     def open_file(self):
         self.player.set_property("uri", "file://" + self.currentFile)
 
-    def play(self):
+    def play(self, song=None):
+        if song is not None:
+            self.currentFile = song.get_path()
+            self.currentSong = song
+
         if self.currentFile is not None:
-            mfile = auto.File(self.currentFile)
-            fileInfos = dict()
-            fileInfos.update({"artist":mfile.artist, "album":mfile.album, "title":mfile.title, "track_number":mfile.track})
             if not self.is_playing():
                 self.open_file()
             self.player.set_state(gst.STATE_PLAYING)
             self.playing = True
-            self.notify_observers("play", fileInfos)
+            self.notify_observers("play", self.currentSong)
+
+    def get_file_infos(self,sfile):
+        if sfile is not None:
+            mfile = auto.File(sfile)
+            fileInfos = dict()
+            fileInfos.update({"artist":mfile.artist, "album":mfile.album, "title":mfile.title, "track_number":mfile.track})
+            return fileInfos
+
+    def get_playlist(self):
+        return self.playlist
 
     def pause(self):
         self.player.set_state(gst.STATE_PAUSED)
@@ -76,11 +94,11 @@ class MusicPlayer:
 
     def play_next(self):
         self.stop()
-        self.currentFile = self.playlist.get_next_track()
+        self.currentFile = self.playlist.get_next_track().get_path()
         self.play()
 
     def play_prev(self):
         self.stop()
-        self.currentFile = self.playlist.get_previous_track()
+        self.currentFile = self.playlist.get_previous_track().get_path()
         self.play()
 

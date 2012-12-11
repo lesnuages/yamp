@@ -1,10 +1,10 @@
 class Playlist(list):
-    def __init__(self, name=None, filelist=None):
+    def __init__(self, name=None, songList=None):
         list.__init__(self)
         self._name = name
         self._current_index = 0
-        if filelist is not None:
-            self.extend(filelist)
+        if songList is not None:
+            self.extend(songList)
 
     def save(self, filepath):
         return None
@@ -33,3 +33,31 @@ class Playlist(list):
 
     def get_current(self):
         return self[self._current_index]
+
+class Song():
+    def __init__(self, stitle="Unknown", sartist="Unknown", salbum="Unknown", strack="Unknown",spath=None):
+        self.title = stitle
+        self.artist = sartist
+        self.album = salbum
+        self.track = strack
+        self.path = spath
+
+    def get_path(self):
+        return self.path
+    
+    def get_title(self):
+        return self.title
+
+    def get_artist(self):
+        return self.artist
+
+    def get_album(self):
+        return self.album
+
+    def get_track(self):
+        return self.track
+
+    def __eq__(self,song): 
+        return (self.artist == song.get_artist() and self.album == song.get_album() and self.track == song.get_track())
+
+
