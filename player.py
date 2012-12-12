@@ -62,10 +62,12 @@ class MusicPlayer:
 
     def play(self, song=None):
         if song is not None:
+            self.playlist.set_current(song)
             self.currentFile = song.get_path()
             self.currentSong = song
 
         if self.currentFile is not None:
+            self.currentFile = self.currentSong.get_path()
             if not self.is_playing():
                 self.open_file()
             self.player.set_state(gst.STATE_PLAYING)
@@ -93,12 +95,14 @@ class MusicPlayer:
         self.playing = False
 
     def play_next(self):
-        self.stop()
-        self.currentFile = self.playlist.get_next_track().get_path()
-        self.play()
+        if self.is_playing():
+            self.stop()
+            self.currentSong = self.playlist.get_next_track()
+            self.play()
 
     def play_prev(self):
-        self.stop()
-        self.currentFile = self.playlist.get_previous_track().get_path()
-        self.play()
+        if self.is_playing():
+            self.stop()
+            self.currentSong = self.playlist.get_previous_track()
+            self.play()
 

@@ -132,7 +132,6 @@ class GTK_Main:
         else:
             print("Error : unknow message {}".format(message))
 
-
     def update_model(self):
         for song in self.player.get_playlist():
             self.treeView.get_model().append([song.get_track(),song.get_title(),song.get_artist(),song.get_album(),song.get_path()])

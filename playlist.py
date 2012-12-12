@@ -34,6 +34,11 @@ class Playlist(list):
     def get_current(self):
         return self[self._current_index]
 
+    def set_current(self, song):
+        for s in self:
+            if s == song:
+                self._current_index = self.index(s)
+
 class Song():
     def __init__(self, stitle="Unknown", sartist="Unknown", salbum="Unknown", strack="Unknown",spath=None):
         self.title = stitle
@@ -57,7 +62,11 @@ class Song():
     def get_track(self):
         return self.track
 
-    def __eq__(self,song): 
-        return (self.artist == song.get_artist() and self.album == song.get_album() and self.track == song.get_track())
-
+    def __eq__(self,song):
+        if self.artist == song.get_artist():
+            if self.album == song.get_album():
+                if self.title == song.get_title():
+                    if str(self.track) == str(song.get_track()):
+                        return True
+        return False
 
