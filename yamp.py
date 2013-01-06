@@ -77,7 +77,7 @@ class GTK_Main:
         self.buttonStop.connect("clicked", self.stop_action)
 
         self.imgCover = gtk.Image()
-        pixbuf = gtk.gdk.pixbuf_new_from_file("music_cd.png")
+        pixbuf = gtk.gdk.pixbuf_new_from_file("./music_cd.png")
         scaled_buf = pixbuf.scale_simple(84,84,gtk.gdk.INTERP_BILINEAR)
         self.imgCover.set_from_pixbuf(scaled_buf)
 
@@ -148,25 +148,25 @@ class GTK_Main:
         self.player.play(song)
 
     def create_columns(self, treeView):
-            rendererText = gtk.CellRendererText()
-            column = gtk.TreeViewColumn("Track #", rendererText, text=0)
-            column.set_sort_column_id(0)    
-            treeView.append_column(column)
-            
-            rendererText = gtk.CellRendererText()
-            column = gtk.TreeViewColumn("Title", rendererText, text=1)
-            column.set_sort_column_id(1)
-            treeView.append_column(column)
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Track #", rendererText, text=0)
+        column.set_sort_column_id(0)    
+        treeView.append_column(column)
+        
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Title", rendererText, text=1)
+        column.set_sort_column_id(1)
+        treeView.append_column(column)
 
-            rendererText = gtk.CellRendererText()
-            column = gtk.TreeViewColumn("Artist", rendererText, text=2)
-            column.set_sort_column_id(2)
-            treeView.append_column(column)
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Artist", rendererText, text=2)
+        column.set_sort_column_id(2)
+        treeView.append_column(column)
 
-            rendererText = gtk.CellRendererText()
-            column = gtk.TreeViewColumn("Album", rendererText, text=3)
-            column.set_sort_column_id(3)
-            treeView.append_column(column)
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Album", rendererText, text=3)
+        column.set_sort_column_id(3)
+        treeView.append_column(column)
 
     def play_action(self, w):
         if w == self.buttonPlay:

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, thread
 import pygst
 pygst.require('0.10')
 import gst
@@ -20,6 +20,8 @@ class MusicPlayer:
         self.currentFile = None
         self.currentSong = None
 
+    def get_player(self):
+        return self.player
 
     def is_playing(self):
         return self.playing
